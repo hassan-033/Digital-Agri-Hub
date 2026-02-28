@@ -35,18 +35,18 @@ export default function SupplierMatchingTable({
           </thead>
           <tbody className="divide-y divide-slate-200 bg-white text-slate-700">
             {suppliers.map((supplier) => (
-              <tr key={supplier.supplierId}>
+              <tr key={supplier.supplier_id}>
                 <td className="px-4 py-3 font-medium text-slate-900">
-                  {supplier.supplierName}
+                  {supplier.supplier_name}
                 </td>
                 <td className="px-4 py-3">{supplier.location}</td>
-                <td className="px-4 py-3">{supplier.availableVolumeTons}</td>
+                <td className="px-4 py-3">{supplier.available_volume_tons}</td>
                 <td className="px-4 py-3">
-                  {nairaFormatter.format(supplier.askingPricePerTonNaira)}
+                  {nairaFormatter.format(supplier.asking_price_per_ton_naira)}
                 </td>
                 <td className="px-4 py-3">
                   <a
-                    href={`mailto:${supplier.contactEmail}`}
+                    href={`mailto:${supplier.contact_email}`}
                     className="inline-flex items-center rounded-md border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slate-800 hover:text-slate-900"
                   >
                     Contact

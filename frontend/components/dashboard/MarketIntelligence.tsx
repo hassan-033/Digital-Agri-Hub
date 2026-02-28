@@ -41,26 +41,26 @@ export default function MarketIntelligence({
           </thead>
           <tbody className="divide-y divide-slate-200 bg-white text-slate-700">
             {marketPrices.map((priceRow) => {
-              const isTrendPositive = priceRow.priceChangePercentage >= 0;
+              const isTrendPositive = priceRow.price_change_percentage >= 0;
 
               return (
-                <tr key={`${priceRow.cropName}-${priceRow.marketName}`}>
+                <tr key={`${priceRow.crop_name}-${priceRow.market_name}`}>
                   <td className="px-4 py-3 font-medium text-slate-900">
-                    {priceRow.cropName}
+                    {priceRow.crop_name}
                   </td>
-                  <td className="px-4 py-3">{priceRow.marketName}</td>
+                  <td className="px-4 py-3">{priceRow.market_name}</td>
                   <td className="px-4 py-3">
-                    {nairaFormatter.format(priceRow.wholesalePricePerTonNaira)}
+                    {nairaFormatter.format(priceRow.wholesale_price_per_ton_naira)}
                   </td>
                   <td
                     className={`px-4 py-3 font-medium ${
                       isTrendPositive ? 'text-emerald-600' : 'text-rose-600'
                     }`}
                   >
-                    {formatPriceTrend(priceRow.priceChangePercentage)}
+                    {formatPriceTrend(priceRow.price_change_percentage)}
                   </td>
                   <td className="px-4 py-3">
-                    {new Date(priceRow.lastUpdatedIsoUtc).toLocaleString('en-NG', {
+                    {new Date(priceRow.last_updated_iso_utc).toLocaleString('en-NG', {
                       dateStyle: 'medium',
                       timeStyle: 'short',
                     })}
