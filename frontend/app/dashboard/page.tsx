@@ -1,6 +1,8 @@
+"use client";
+
 import React, { useEffect, useState } from 'react';
-import  { MarketIntelligence }  from '../../components/dashboard/MarketIntelligence';
-import { DashboardSnapshot } from '../../types/market';
+import { MarketIntelligence } from '../../components/dashboard/MarketIntelligence';
+import { DashboardSnapshot } from '@/types/market';
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardSnapshot | null>(null);
@@ -49,7 +51,7 @@ export default function DashboardPage() {
               <p className="text-xs text-gray-400 mb-4">
                 Last updated: {new Date(data.generated_at_iso_utc).toLocaleString()}
               </p>
-              <MarketIntelligence marketPrices={data.market_prices} />
+              <MarketIntelligence marketData={data.market_prices} />
               {/* <SupplierMatchingTable supplierData={data.supplier_listings} /> */}
             </>
           )}
