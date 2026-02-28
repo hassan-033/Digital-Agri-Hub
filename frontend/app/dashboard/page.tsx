@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import  MarketIntelligence  from '../../components/dashboard/MarketIntelligence';
+import  { MarketIntelligence }  from '../../components/dashboard/MarketIntelligence';
 import { DashboardSnapshot } from '../../types/market';
 
 export default function DashboardPage() {
@@ -10,8 +10,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        // NOTE: Change this URL to your live Render.com URL once deployed
-        const response = await fetch('http://127.0.0.1:8000/api/v1/dashboard');
+        const response = await fetch('https://agri-hub-api.onrender.com/api/v1/dashboard');
         
         if (!response.ok) {
           throw new Error('Failed to fetch dashboard data');

@@ -1,76 +1,48 @@
+import React from 'react';
 import { CropMarketPrice } from '../../types/market';
 
-interface MarketIntelligenceProps {
-  marketPrices: CropMarketPrice[];
+interface Props {
+  marketData: CropMarketPrice[];
 }
 
-const nairaFormatter = new Intl.NumberFormat('en-NG', {
-  style: 'currency',
-  currency: 'NGN',
-  maximumFractionDigits: 0,
-});
+export const MarketIntelligence = ({ marketData }: Props) => {
+  if (!marketData || marketData.length === 0) {
+    return <p className="text-gray-500">No market data available.</p>;
+  }
 
-function formatPriceTrend(priceChangePercentage: number): string {
-  const trendPrefix = priceChangePercentage > 0 ? '+' : '';
-
-  return `${trendPrefix}${priceChangePercentage.toFixed(1)}%`;
-}
-
-export default function MarketIntelligence({
-  marketPrices,
-}: MarketIntelligenceProps) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      <header className="mb-4 flex flex-col gap-1">
-        <h2 className="text-lg font-semibold text-slate-900">Market Intelligence</h2>
-        <p className="text-sm text-slate-600">
-          Current wholesale prices across priority agricultural markets.
-        </p>
-      </header>
-
+    <div className="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 className="text-xl font-semibold text-gray-800 mb-4">Live Market Intelligence</h2>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[560px] divide-y divide-slate-200 text-left text-sm">
-          <thead className="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+        <table className="min-w-full text-left text-sm whitespace-nowrap">
+          <thead className="uppercase tracking-wider border-b-2 border-gray-200 bg-gray-50 text-gray-600">
             <tr>
-              <th className="px-4 py-3 font-medium">Crop</th>
-              <th className="px-4 py-3 font-medium">Market</th>
-              <th className="px-4 py-3 font-medium">Price / Ton</th>
-              <th className="px-4 py-3 font-medium">24h Trend</th>
-              <th className="px-4 py-3 font-medium">Last Updated</th>
+              <th className="px-6 py-3">Commodity</th>
+              <th className="px-6 py-3">Location</th>
+              <th className="px-6 py-3">Price / Ton (NGN)</th>
+              <th className="px-6 py-3">Trend (24h)</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200 bg-white text-slate-700">
-            {marketPrices.map((priceRow) => {
-              const isTrendPositive = priceRow.price_change_percentage >= 0;
-
-              return (
-                <tr key={`${priceRow.crop_name}-${priceRow.market_name}`}>
-                  <td className="px-4 py-3 font-medium text-slate-900">
-                    {priceRow.crop_name}
-                  </td>
-                  <td className="px-4 py-3">{priceRow.market_name}</td>
-                  <td className="px-4 py-3">
-                    {nairaFormatter.format(priceRow.wholesale_price_per_ton_naira)}
-                  </td>
-                  <td
-                    className={`px-4 py-3 font-medium ${
-                      isTrendPositive ? 'text-emerald-600' : 'text-rose-600'
-                    }`}
-                  >
-                    {formatPriceTrend(priceRow.price_change_percentage)}
-                  </td>
-                  <td className="px-4 py-3">
-                    {new Date(priceRow.last_updated_iso_utc).toLocaleString('en-NG', {
-                      dateStyle: 'medium',
-                      timeStyle: 'short',
-                    })}
-                  </td>
-                </tr>
-              );
-            })}
+          <tbody>
+            {marketData.map((data, index) => (
+              <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                <td className="px-6 py-4 font-medium text-gray-900">{data.crop_name}</td>
+                <td className="px-6 py-4 text-gray-700">{data.market_name}</td>
+                <td className="px-6 py-4 font-semibold">₦{data.wholesale_price_per_ton_naira.toLocaleString()}</td>
+                <td className="px-6 py-4">
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    data.price_change_percentage > 0 ? 'bg-red-100 text-red-700' :
+                    data.price_change_percentage < 0 ? 'bg-green-100 text-green-700' :
+                    'bg-gray-100 text-gray-700'
+                  }`}>
+                    {data.price_change_percentage > 0 ? '+' : ''}{data.price_change_percentage}%
+                  </span>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
-    </section>
+    </div>
   );
-}
+};
