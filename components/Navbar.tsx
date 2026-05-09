@@ -20,13 +20,7 @@ export const Navbar = () => {
               href="/dashboard" 
               className="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors"
             >
-              Dashboard
-            </Link>
-            <Link 
-              href="/login" 
-              className="bg-green-700 text-white hover:bg-green-800 px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-sm"
-            >
-              Client Login
+              Procurement Dashboard
             </Link>
           </div>
 
