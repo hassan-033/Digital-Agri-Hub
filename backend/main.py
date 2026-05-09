@@ -19,8 +19,12 @@ class SupplierListing(BaseModel):
     supplier_name: str
     location: str
     available_volume_tons: int = Field(..., ge=0)
+    commodity_name: str
+    market_reference: str
     asking_price_per_ton_naira: int = Field(..., ge=0)
-    contact_email: str
+    contact_phone_e164: str
+    contact_whatsapp_e164: str
+    contact_email: str | None = None
 
 
 class DashboardSnapshot(BaseModel):
@@ -59,7 +63,11 @@ MOCK_SUPPLIER_LISTINGS: List[SupplierListing] = [
         supplier_name="GreenField Commodities Ltd.",
         location="Kaduna",
         available_volume_tons=240,
+        commodity_name="Maize",
+        market_reference="Kaduna central wholesale benchmark",
         asking_price_per_ton_naira=505000,
+        contact_phone_e164="+2348031110001",
+        contact_whatsapp_e164="+2348031110001",
         contact_email="sales@greenfieldcommodities.ng",
     ),
     SupplierListing(
@@ -67,7 +75,11 @@ MOCK_SUPPLIER_LISTINGS: List[SupplierListing] = [
         supplier_name="Northern Grain Partners",
         location="Kano",
         available_volume_tons=180,
+        commodity_name="Soybeans",
+        market_reference="Kano grain exchange benchmark",
         asking_price_per_ton_naira=688000,
+        contact_phone_e164="+2348031110002",
+        contact_whatsapp_e164="+2348031110002",
         contact_email="trade@northerngrain.ng",
     ),
     SupplierListing(
@@ -75,7 +87,11 @@ MOCK_SUPPLIER_LISTINGS: List[SupplierListing] = [
         supplier_name="West Coast Agro Suppliers",
         location="Lagos",
         available_volume_tons=320,
+        commodity_name="Cassava",
+        market_reference="Lagos bulk produce benchmark",
         asking_price_per_ton_naira=415000,
+        contact_phone_e164="+2348031110003",
+        contact_whatsapp_e164="+2348031110003",
         contact_email="contact@westcoastagro.ng",
     ),
 ]
