@@ -37,7 +37,11 @@ export const supplierListings: SupplierListing[] = [
     supplier_name: 'GreenField Commodities Ltd.',
     location: 'Dawanau',
     available_volume_tons: 240,
+    commodity_name: 'Maize',
+    market_reference: 'Kaduna central wholesale benchmark',
     asking_price_per_ton_naira: 505000,
+    contact_phone_e164: '+2348031110001',
+    contact_whatsapp_e164: '+2348031110001',
     contact_email: 'sales@greenfieldcommodities.ng',
   },
   {
@@ -45,7 +49,11 @@ export const supplierListings: SupplierListing[] = [
     supplier_name: 'Northern Grain Partners',
     location: 'Soba',
     available_volume_tons: 180,
+    commodity_name: 'Soybeans',
+    market_reference: 'Kano grain exchange benchmark',
     asking_price_per_ton_naira: 688000,
+    contact_phone_e164: '+2348031110002',
+    contact_whatsapp_e164: '+2348031110002',
     contact_email: 'trade@northerngrain.ng',
   },
 ];

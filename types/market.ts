@@ -11,8 +11,12 @@ export interface SupplierListing {
   supplier_name: string;
   location: string;
   available_volume_tons: number;
+  commodity_name: string;
+  market_reference: string;
   asking_price_per_ton_naira: number;
-  contact_email: string;
+  contact_phone_e164: string;
+  contact_whatsapp_e164: string;
+  contact_email?: string;
 }
 
 export interface DashboardSnapshot {
