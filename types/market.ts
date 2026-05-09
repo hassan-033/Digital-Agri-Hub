@@ -10,6 +10,7 @@ export interface SupplierListing {
   supplier_id: string;
   supplier_name: string;
   location: string;
+  commodity_type: 'Maize' | 'Soybeans';
   available_volume_tons: number;
   commodity_name: string;
   market_reference: string;

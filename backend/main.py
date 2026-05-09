@@ -38,6 +38,7 @@ class SupplierListing(BaseModel):
     supplier_id: str
     supplier_name: str
     location: str
+    commodity_type: str
     available_volume_tons: int = Field(..., ge=0)
     commodity_name: str
     market_reference: str
@@ -89,6 +90,7 @@ MOCK_SUPPLIER_LISTINGS: List[SupplierListing] = [
         supplier_id="SUP-001",
         supplier_name="GreenField Commodities Ltd.",
         location="Kaduna",
+        commodity_type="Maize",
         available_volume_tons=240,
         commodity_name="Maize",
         market_reference="Kaduna central wholesale benchmark",
