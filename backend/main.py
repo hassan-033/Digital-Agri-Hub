@@ -18,9 +18,10 @@ class SupplierListing(BaseModel):
     supplier_id: str
     supplier_name: str
     location: str
+    commodity_type: str
     available_volume_tons: int = Field(..., ge=0)
+    stock_status: str
     asking_price_per_ton_naira: int = Field(..., ge=0)
-    contact_email: str
 
 
 class DashboardSnapshot(BaseModel):
@@ -58,25 +59,19 @@ MOCK_SUPPLIER_LISTINGS: List[SupplierListing] = [
         supplier_id="SUP-001",
         supplier_name="GreenField Commodities Ltd.",
         location="Kaduna",
+        commodity_type="Maize",
         available_volume_tons=240,
+        stock_status="available",
         asking_price_per_ton_naira=505000,
-        contact_email="sales@greenfieldcommodities.ng",
     ),
     SupplierListing(
         supplier_id="SUP-002",
         supplier_name="Northern Grain Partners",
         location="Kano",
-        available_volume_tons=180,
+        commodity_type="Soybeans",
+        available_volume_tons=0,
+        stock_status="depleted",
         asking_price_per_ton_naira=688000,
-        contact_email="trade@northerngrain.ng",
-    ),
-    SupplierListing(
-        supplier_id="SUP-003",
-        supplier_name="West Coast Agro Suppliers",
-        location="Lagos",
-        available_volume_tons=320,
-        asking_price_per_ton_naira=415000,
-        contact_email="contact@westcoastagro.ng",
     ),
 ]
 
