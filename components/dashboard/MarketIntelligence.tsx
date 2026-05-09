@@ -10,6 +10,21 @@ export const MarketIntelligence = ({ marketData }: Props) => {
     return <p className="text-gray-500">No market data available.</p>;
   }
 
+  const groupedData = marketData.reduce<Record<string, CropMarketPrice[]>>((accumulator, entry) => {
+    if (!accumulator[entry.market_name]) {
+      accumulator[entry.market_name] = [];
+    }
+
+    accumulator[entry.market_name].push(entry);
+    return accumulator;
+  }, {});
+
+  const sortedMarkets = Object.keys(groupedData).sort((a, b) => a.localeCompare(b));
+
+  sortedMarkets.forEach((marketName) => {
+    groupedData[marketName].sort((a, b) => a.crop_name.localeCompare(b.crop_name));
+  });
+
   return (
     <div className="bg-white rounded-lg shadow p-6 mb-6">
       <h2 className="text-xl font-semibold text-gray-800 mb-4">Live Market Intelligence</h2>
@@ -24,8 +39,15 @@ export const MarketIntelligence = ({ marketData }: Props) => {
             </tr>
           </thead>
           <tbody>
-            {marketData.map((data, index) => (
-              <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+            {sortedMarkets.map((marketName) => (
+              <React.Fragment key={marketName}>
+                <tr className="border-b border-gray-200 bg-gray-100">
+                  <td className="px-6 py-2 font-semibold text-gray-800" colSpan={4}>
+                    {marketName}
+                  </td>
+                </tr>
+                {groupedData[marketName].map((data) => (
+                  <tr key={`${marketName}-${data.crop_name}`} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="px-6 py-4 font-medium text-gray-900">{data.crop_name}</td>
                 <td className="px-6 py-4 text-gray-700">{data.market_name}</td>
                 <td className="px-6 py-4 font-semibold">₦{data.wholesale_price_per_ton_naira.toLocaleString()}</td>
@@ -39,6 +61,8 @@ export const MarketIntelligence = ({ marketData }: Props) => {
                   </span>
                 </td>
               </tr>
+                ))}
+              </React.Fragment>
             ))}
           </tbody>
         </table>
