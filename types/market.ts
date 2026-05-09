@@ -4,6 +4,7 @@ export interface CropMarketPrice {
   wholesale_price_per_ton_naira: number;
   price_change_percentage: number;
   last_updated_iso_utc: string;
+  editor_note: string;
 }
 
 export interface SupplierListing {

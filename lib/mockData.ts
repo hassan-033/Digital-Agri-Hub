@@ -7,6 +7,7 @@ export const marketPriceRows: CropMarketPrice[] = [
     wholesale_price_per_ton_naira: 510000,
     price_change_percentage: 2.3,
     last_updated_iso_utc: '2026-02-27T09:30:00Z',
+    editor_note: 'Daily baseline refresh.',
   },
   {
     crop_name: 'Maize',
@@ -21,6 +22,7 @@ export const marketPriceRows: CropMarketPrice[] = [
     wholesale_price_per_ton_naira: 695000,
     price_change_percentage: -1.2,
     last_updated_iso_utc: '2026-02-27T09:30:00Z',
+    editor_note: 'Daily baseline refresh.',
   },
   {
     crop_name: 'Soybeans',
@@ -28,6 +30,7 @@ export const marketPriceRows: CropMarketPrice[] = [
     wholesale_price_per_ton_naira: 684000,
     price_change_percentage: -0.6,
     last_updated_iso_utc: '2026-02-27T09:30:00Z',
+    editor_note: 'Daily baseline refresh.',
   },
 ];
 
@@ -43,6 +46,13 @@ export const supplierListings: SupplierListing[] = [
     contact_phone_e164: '+2348031110001',
     contact_whatsapp_e164: '+2348031110001',
     contact_email: 'sales@greenfieldcommodities.ng',
+    commodity_name: 'Maize',
+    market_reference: 'Dawanau',
+    contact_phone_e164: '+2348010000001',
+    contact_whatsapp_e164: '+2348010000001',
+    stock_status: 'in_stock',
+    last_updated_iso_utc: '2026-02-27T09:30:00Z',
+    editor_note: 'Confirmed by desk call.',
   },
   {
     supplier_id: 'SUP-002',
@@ -55,5 +65,12 @@ export const supplierListings: SupplierListing[] = [
     contact_phone_e164: '+2348031110002',
     contact_whatsapp_e164: '+2348031110002',
     contact_email: 'trade@northerngrain.ng',
+    commodity_name: 'Soybeans',
+    market_reference: 'Soba',
+    contact_phone_e164: '+2348010000002',
+    contact_whatsapp_e164: '+2348010000002',
+    stock_status: 'limited',
+    last_updated_iso_utc: '2026-02-27T09:30:00Z',
+    editor_note: 'Volume fluctuates intra-day.',
   },
 ];

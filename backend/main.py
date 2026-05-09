@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
+import os
 from typing import List
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 
@@ -16,6 +17,23 @@ class CropMarketPrice(BaseModel):
     wholesale_price_per_ton_naira: int = Field(..., ge=0)
     price_change_percentage: float
     last_updated_iso_utc: str
+    editor_note: str = Field(default="")
+
+    @field_validator("crop_name")
+    @classmethod
+    def validate_crop_name(cls, value: str) -> str:
+        normalized_value = value.strip()
+        if normalized_value not in SUPPORTED_COMMODITIES:
+            raise ValueError(f"Unsupported commodity: {normalized_value}")
+        return normalized_value
+
+    @field_validator("market_name")
+    @classmethod
+    def validate_market_name(cls, value: str) -> str:
+        normalized_value = value.strip()
+        if normalized_value not in SUPPORTED_MARKETS:
+            raise ValueError(f"Unsupported market: {normalized_value}")
+        return normalized_value
 
     @field_validator("crop_name")
     @classmethod
@@ -52,6 +70,20 @@ class DashboardSnapshot(BaseModel):
     generated_at_iso_utc: str
     market_prices: List[CropMarketPrice]
     supplier_listings: List[SupplierListing]
+
+
+class UpdateMarketPricePayload(BaseModel):
+    crop_name: str
+    market_name: str
+    wholesale_price_per_ton_naira: int = Field(..., ge=0)
+    editor_note: str = Field(default="")
+
+
+class UpdateSupplierPayload(BaseModel):
+    supplier_id: str
+    stock_status: str
+    available_volume_tons: int = Field(..., ge=0)
+    editor_note: str = Field(default="")
 
 
 MOCK_MARKET_PRICES: List[CropMarketPrice] = [
@@ -98,6 +130,13 @@ MOCK_SUPPLIER_LISTINGS: List[SupplierListing] = [
         contact_phone_e164="+2348031110001",
         contact_whatsapp_e164="+2348031110001",
         contact_email="sales@greenfieldcommodities.ng",
+        commodity_name="Maize",
+        market_reference="Dawanau",
+        contact_phone_e164="+2348010000001",
+        contact_whatsapp_e164="+2348010000001",
+        stock_status="in_stock",
+        last_updated_iso_utc="2026-02-27T09:30:00Z",
+        editor_note="Confirmed by procurement desk.",
     ),
     SupplierListing(
         supplier_id="SUP-002",
@@ -125,19 +164,16 @@ MOCK_SUPPLIER_LISTINGS: List[SupplierListing] = [
     ),
 ]
 
-app = FastAPI(
-    title="Digital Agri-Hub API",
-    description="MVP API serving gated commodity intelligence.",
-    version="0.1.0",
-)
+app = FastAPI(title="Digital Agri-Hub API", description="MVP API serving gated commodity intelligence.", version="0.1.0")
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
+def _require_admin_token(x_admin_token: str | None) -> None:
+    expected = os.getenv("ADMIN_TOKEN")
+    if not expected:
+        raise HTTPException(status_code=503, detail="ADMIN_TOKEN is not configured")
+    if x_admin_token != expected:
+        raise HTTPException(status_code=401, detail="Unauthorized admin token")
 
 
 @app.get("/health")
@@ -149,7 +185,6 @@ def get_health() -> dict[str, str]:
 def get_market_prices() -> List[CropMarketPrice]:
     if not MOCK_MARKET_PRICES:
         raise HTTPException(status_code=404, detail="Market prices are unavailable")
-
     return MOCK_MARKET_PRICES
 
 
@@ -157,7 +192,6 @@ def get_market_prices() -> List[CropMarketPrice]:
 def get_supplier_listings() -> List[SupplierListing]:
     if not MOCK_SUPPLIER_LISTINGS:
         raise HTTPException(status_code=404, detail="Supplier listings are unavailable")
-
     return MOCK_SUPPLIER_LISTINGS
 
 
