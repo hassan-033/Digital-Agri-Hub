@@ -34,12 +34,12 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-7xl mx-auto">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Agri-Hub Executive Portal</h1>
-          <p className="text-gray-600 mt-2">Enterprise Supply Chain Intelligence</p>
+          <h1 className="text-3xl font-bold text-gray-900">Agri-Hub Procurement Dashboard</h1>
+          <p className="text-gray-600 mt-2">Buy faster, avoid overpaying.</p>
         </header>
         
         <main>
-          {isLoading && <p className="text-gray-500">Loading intelligence data...</p>}
+          {isLoading && <p className="text-gray-500">Loading spot-price benchmarks and supplier status...</p>}
           {error && <p className="text-red-500">Error: {error}</p>}
           
           {/* You will need to slightly update your MarketIntelligence component 
