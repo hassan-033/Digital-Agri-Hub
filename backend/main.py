@@ -4,7 +4,11 @@ from typing import List
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+
+SUPPORTED_COMMODITIES = {"Maize", "Soybeans"}
+SUPPORTED_MARKETS = {"Dawanau", "Soba"}
 
 
 class CropMarketPrice(BaseModel):
@@ -14,6 +18,22 @@ class CropMarketPrice(BaseModel):
     price_change_percentage: float
     last_updated_iso_utc: str
     editor_note: str = Field(default="")
+
+    @field_validator("crop_name")
+    @classmethod
+    def validate_crop_name(cls, value: str) -> str:
+        normalized_value = value.strip()
+        if normalized_value not in SUPPORTED_COMMODITIES:
+            raise ValueError(f"Unsupported commodity: {normalized_value}")
+        return normalized_value
+
+    @field_validator("market_name")
+    @classmethod
+    def validate_market_name(cls, value: str) -> str:
+        normalized_value = value.strip()
+        if normalized_value not in SUPPORTED_MARKETS:
+            raise ValueError(f"Unsupported market: {normalized_value}")
+        return normalized_value
 
 
 class SupplierListing(BaseModel):
@@ -49,22 +69,10 @@ class UpdateSupplierPayload(BaseModel):
 
 
 MOCK_MARKET_PRICES: List[CropMarketPrice] = [
-    CropMarketPrice(
-        crop_name="Maize",
-        market_name="Dawanau",
-        wholesale_price_per_ton_naira=510000,
-        price_change_percentage=2.3,
-        last_updated_iso_utc="2026-02-27T09:30:00Z",
-        editor_note="Baseline verified from morning call.",
-    ),
-    CropMarketPrice(
-        crop_name="Soybeans",
-        market_name="Soba",
-        wholesale_price_per_ton_naira=695000,
-        price_change_percentage=-1.2,
-        last_updated_iso_utc="2026-02-27T09:30:00Z",
-        editor_note="Baseline verified from morning call.",
-    ),
+    CropMarketPrice(crop_name="Maize", market_name="Dawanau", wholesale_price_per_ton_naira=510000, price_change_percentage=2.3, last_updated_iso_utc="2026-02-27T09:30:00Z", editor_note="Baseline verified from morning call."),
+    CropMarketPrice(crop_name="Maize", market_name="Soba", wholesale_price_per_ton_naira=498000, price_change_percentage=1.1, last_updated_iso_utc="2026-02-27T09:30:00Z"),
+    CropMarketPrice(crop_name="Soybeans", market_name="Dawanau", wholesale_price_per_ton_naira=695000, price_change_percentage=-1.2, last_updated_iso_utc="2026-02-27T09:30:00Z"),
+    CropMarketPrice(crop_name="Soybeans", market_name="Soba", wholesale_price_per_ton_naira=684000, price_change_percentage=-0.6, last_updated_iso_utc="2026-02-27T09:30:00Z"),
 ]
 
 MOCK_SUPPLIER_LISTINGS: List[SupplierListing] = [
@@ -92,19 +100,8 @@ MOCK_SUPPLIER_LISTINGS: List[SupplierListing] = [
     ),
 ]
 
-app = FastAPI(
-    title="Digital Agri-Hub API",
-    description="MVP API serving gated commodity intelligence.",
-    version="0.1.0",
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI(title="Digital Agri-Hub API", description="MVP API serving gated commodity intelligence.", version="0.1.0")
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 
 def _require_admin_token(x_admin_token: str | None) -> None:
@@ -124,7 +121,6 @@ def get_health() -> dict[str, str]:
 def get_market_prices() -> List[CropMarketPrice]:
     if not MOCK_MARKET_PRICES:
         raise HTTPException(status_code=404, detail="Market prices are unavailable")
-
     return MOCK_MARKET_PRICES
 
 
@@ -132,30 +128,29 @@ def get_market_prices() -> List[CropMarketPrice]:
 def get_supplier_listings() -> List[SupplierListing]:
     if not MOCK_SUPPLIER_LISTINGS:
         raise HTTPException(status_code=404, detail="Supplier listings are unavailable")
-
     return MOCK_SUPPLIER_LISTINGS
 
 
 @app.post("/api/v1/admin/market-prices", response_model=CropMarketPrice)
-def update_market_price(
-    payload: UpdateMarketPricePayload,
-    x_admin_token: str | None = Header(default=None),
-) -> CropMarketPrice:
+def update_market_price(payload: UpdateMarketPricePayload, x_admin_token: str | None = Header(default=None)) -> CropMarketPrice:
     _require_admin_token(x_admin_token)
     now_iso = datetime.now(timezone.utc).isoformat()
 
+    # Reuse model validators to enforce supported commodity/market combinations.
+    validated = CropMarketPrice(
+        crop_name=payload.crop_name,
+        market_name=payload.market_name,
+        wholesale_price_per_ton_naira=payload.wholesale_price_per_ton_naira,
+        price_change_percentage=0,
+        last_updated_iso_utc=now_iso,
+        editor_note=payload.editor_note,
+    )
+
     for idx, price in enumerate(MOCK_MARKET_PRICES):
-        if price.crop_name.lower() == payload.crop_name.lower() and price.market_name.lower() == payload.market_name.lower():
+        if price.crop_name == validated.crop_name and price.market_name == validated.market_name:
             previous = price.wholesale_price_per_ton_naira
-            pct_change = 0.0 if previous == 0 else ((payload.wholesale_price_per_ton_naira - previous) / previous) * 100
-            updated = CropMarketPrice(
-                crop_name=price.crop_name,
-                market_name=price.market_name,
-                wholesale_price_per_ton_naira=payload.wholesale_price_per_ton_naira,
-                price_change_percentage=round(pct_change, 2),
-                last_updated_iso_utc=now_iso,
-                editor_note=payload.editor_note,
-            )
+            pct_change = 0.0 if previous == 0 else ((validated.wholesale_price_per_ton_naira - previous) / previous) * 100
+            updated = validated.model_copy(update={"price_change_percentage": round(pct_change, 2), "last_updated_iso_utc": now_iso})
             MOCK_MARKET_PRICES[idx] = updated
             return updated
 
@@ -163,25 +158,19 @@ def update_market_price(
 
 
 @app.post("/api/v1/admin/suppliers", response_model=SupplierListing)
-def update_supplier_listing(
-    payload: UpdateSupplierPayload,
-    x_admin_token: str | None = Header(default=None),
-) -> SupplierListing:
+def update_supplier_listing(payload: UpdateSupplierPayload, x_admin_token: str | None = Header(default=None)) -> SupplierListing:
     _require_admin_token(x_admin_token)
     now_iso = datetime.now(timezone.utc).isoformat()
 
     for idx, supplier in enumerate(MOCK_SUPPLIER_LISTINGS):
         if supplier.supplier_id == payload.supplier_id:
-            updated = SupplierListing(
-                supplier_id=supplier.supplier_id,
-                supplier_name=supplier.supplier_name,
-                location=supplier.location,
-                available_volume_tons=payload.available_volume_tons,
-                asking_price_per_ton_naira=supplier.asking_price_per_ton_naira,
-                contact_email=supplier.contact_email,
-                stock_status=payload.stock_status,
-                last_updated_iso_utc=now_iso,
-                editor_note=payload.editor_note,
+            updated = supplier.model_copy(
+                update={
+                    "available_volume_tons": payload.available_volume_tons,
+                    "stock_status": payload.stock_status,
+                    "last_updated_iso_utc": now_iso,
+                    "editor_note": payload.editor_note,
+                }
             )
             MOCK_SUPPLIER_LISTINGS[idx] = updated
             return updated
