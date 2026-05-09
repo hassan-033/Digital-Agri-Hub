@@ -7,6 +7,7 @@ export const marketPriceRows: CropMarketPrice[] = [
     wholesale_price_per_ton_naira: 510000,
     price_change_percentage: 2.3,
     last_updated_iso_utc: '2026-02-27T09:30:00Z',
+    editor_note: 'Daily baseline refresh.',
   },
   {
     crop_name: 'Soybeans',
@@ -14,6 +15,7 @@ export const marketPriceRows: CropMarketPrice[] = [
     wholesale_price_per_ton_naira: 695000,
     price_change_percentage: -1.2,
     last_updated_iso_utc: '2026-02-27T09:30:00Z',
+    editor_note: 'Daily baseline refresh.',
   },
   {
     crop_name: 'Cassava',
@@ -21,6 +23,7 @@ export const marketPriceRows: CropMarketPrice[] = [
     wholesale_price_per_ton_naira: 420000,
     price_change_percentage: 0.8,
     last_updated_iso_utc: '2026-02-27T09:30:00Z',
+    editor_note: 'Daily baseline refresh.',
   },
 ];
 
@@ -32,6 +35,13 @@ export const supplierListings: SupplierListing[] = [
     available_volume_tons: 240,
     asking_price_per_ton_naira: 505000,
     contact_email: 'sales@greenfieldcommodities.ng',
+    commodity_name: 'Maize',
+    market_reference: 'Dawanau',
+    contact_phone_e164: '+2348010000001',
+    contact_whatsapp_e164: '+2348010000001',
+    stock_status: 'in_stock',
+    last_updated_iso_utc: '2026-02-27T09:30:00Z',
+    editor_note: 'Confirmed by desk call.',
   },
   {
     supplier_id: 'SUP-002',
@@ -40,6 +50,13 @@ export const supplierListings: SupplierListing[] = [
     available_volume_tons: 180,
     asking_price_per_ton_naira: 688000,
     contact_email: 'trade@northerngrain.ng',
+    commodity_name: 'Soybeans',
+    market_reference: 'Soba',
+    contact_phone_e164: '+2348010000002',
+    contact_whatsapp_e164: '+2348010000002',
+    stock_status: 'limited',
+    last_updated_iso_utc: '2026-02-27T09:30:00Z',
+    editor_note: 'Volume fluctuates intra-day.',
   },
   {
     supplier_id: 'SUP-003',
@@ -48,5 +65,12 @@ export const supplierListings: SupplierListing[] = [
     available_volume_tons: 320,
     asking_price_per_ton_naira: 415000,
     contact_email: 'contact@westcoastagro.ng',
+    commodity_name: 'Maize',
+    market_reference: 'Soba',
+    contact_phone_e164: '+2348010000003',
+    contact_whatsapp_e164: '+2348010000003',
+    stock_status: 'in_stock',
+    last_updated_iso_utc: '2026-02-27T09:30:00Z',
+    editor_note: 'Regional fallback supplier.',
   },
 ];

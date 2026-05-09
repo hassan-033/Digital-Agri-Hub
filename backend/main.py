@@ -43,6 +43,10 @@ class SupplierListing(BaseModel):
     available_volume_tons: int = Field(..., ge=0)
     asking_price_per_ton_naira: int = Field(..., ge=0)
     contact_email: str
+    commodity_name: str = Field(default="Maize")
+    market_reference: str = Field(default="Dawanau")
+    contact_phone_e164: str = Field(default="")
+    contact_whatsapp_e164: str = Field(default="")
     stock_status: str = Field(default="in_stock")
     last_updated_iso_utc: str = Field(default="")
     editor_note: str = Field(default="")
@@ -83,6 +87,10 @@ MOCK_SUPPLIER_LISTINGS: List[SupplierListing] = [
         available_volume_tons=240,
         asking_price_per_ton_naira=505000,
         contact_email="sales@greenfieldcommodities.ng",
+        commodity_name="Maize",
+        market_reference="Dawanau",
+        contact_phone_e164="+2348010000001",
+        contact_whatsapp_e164="+2348010000001",
         stock_status="in_stock",
         last_updated_iso_utc="2026-02-27T09:30:00Z",
         editor_note="Confirmed by procurement desk.",
@@ -94,6 +102,10 @@ MOCK_SUPPLIER_LISTINGS: List[SupplierListing] = [
         available_volume_tons=180,
         asking_price_per_ton_naira=688000,
         contact_email="trade@northerngrain.ng",
+        commodity_name="Soybeans",
+        market_reference="Soba",
+        contact_phone_e164="+2348010000002",
+        contact_whatsapp_e164="+2348010000002",
         stock_status="limited",
         last_updated_iso_utc="2026-02-27T09:30:00Z",
         editor_note="Volume fluctuates intra-day.",
