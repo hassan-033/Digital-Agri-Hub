@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
+import os
 from typing import List
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -12,6 +13,7 @@ class CropMarketPrice(BaseModel):
     wholesale_price_per_ton_naira: int = Field(..., ge=0)
     price_change_percentage: float
     last_updated_iso_utc: str
+    editor_note: str = Field(default="")
 
 
 class SupplierListing(BaseModel):
@@ -21,6 +23,9 @@ class SupplierListing(BaseModel):
     available_volume_tons: int = Field(..., ge=0)
     asking_price_per_ton_naira: int = Field(..., ge=0)
     contact_email: str
+    stock_status: str = Field(default="in_stock")
+    last_updated_iso_utc: str = Field(default="")
+    editor_note: str = Field(default="")
 
 
 class DashboardSnapshot(BaseModel):
@@ -29,27 +34,36 @@ class DashboardSnapshot(BaseModel):
     supplier_listings: List[SupplierListing]
 
 
+class UpdateMarketPricePayload(BaseModel):
+    crop_name: str
+    market_name: str
+    wholesale_price_per_ton_naira: int = Field(..., ge=0)
+    editor_note: str = Field(default="")
+
+
+class UpdateSupplierPayload(BaseModel):
+    supplier_id: str
+    stock_status: str
+    available_volume_tons: int = Field(..., ge=0)
+    editor_note: str = Field(default="")
+
+
 MOCK_MARKET_PRICES: List[CropMarketPrice] = [
     CropMarketPrice(
         crop_name="Maize",
-        market_name="Kaduna",
+        market_name="Dawanau",
         wholesale_price_per_ton_naira=510000,
         price_change_percentage=2.3,
         last_updated_iso_utc="2026-02-27T09:30:00Z",
+        editor_note="Baseline verified from morning call.",
     ),
     CropMarketPrice(
         crop_name="Soybeans",
-        market_name="Kano",
+        market_name="Soba",
         wholesale_price_per_ton_naira=695000,
         price_change_percentage=-1.2,
         last_updated_iso_utc="2026-02-27T09:30:00Z",
-    ),
-    CropMarketPrice(
-        crop_name="Cassava",
-        market_name="Lagos",
-        wholesale_price_per_ton_naira=420000,
-        price_change_percentage=0.8,
-        last_updated_iso_utc="2026-02-27T09:30:00Z",
+        editor_note="Baseline verified from morning call.",
     ),
 ]
 
@@ -61,6 +75,9 @@ MOCK_SUPPLIER_LISTINGS: List[SupplierListing] = [
         available_volume_tons=240,
         asking_price_per_ton_naira=505000,
         contact_email="sales@greenfieldcommodities.ng",
+        stock_status="in_stock",
+        last_updated_iso_utc="2026-02-27T09:30:00Z",
+        editor_note="Confirmed by procurement desk.",
     ),
     SupplierListing(
         supplier_id="SUP-002",
@@ -69,14 +86,9 @@ MOCK_SUPPLIER_LISTINGS: List[SupplierListing] = [
         available_volume_tons=180,
         asking_price_per_ton_naira=688000,
         contact_email="trade@northerngrain.ng",
-    ),
-    SupplierListing(
-        supplier_id="SUP-003",
-        supplier_name="West Coast Agro Suppliers",
-        location="Lagos",
-        available_volume_tons=320,
-        asking_price_per_ton_naira=415000,
-        contact_email="contact@westcoastagro.ng",
+        stock_status="limited",
+        last_updated_iso_utc="2026-02-27T09:30:00Z",
+        editor_note="Volume fluctuates intra-day.",
     ),
 ]
 
@@ -93,6 +105,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+def _require_admin_token(x_admin_token: str | None) -> None:
+    expected = os.getenv("ADMIN_TOKEN")
+    if not expected:
+        raise HTTPException(status_code=503, detail="ADMIN_TOKEN is not configured")
+    if x_admin_token != expected:
+        raise HTTPException(status_code=401, detail="Unauthorized admin token")
 
 
 @app.get("/health")
@@ -114,6 +134,59 @@ def get_supplier_listings() -> List[SupplierListing]:
         raise HTTPException(status_code=404, detail="Supplier listings are unavailable")
 
     return MOCK_SUPPLIER_LISTINGS
+
+
+@app.post("/api/v1/admin/market-prices", response_model=CropMarketPrice)
+def update_market_price(
+    payload: UpdateMarketPricePayload,
+    x_admin_token: str | None = Header(default=None),
+) -> CropMarketPrice:
+    _require_admin_token(x_admin_token)
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    for idx, price in enumerate(MOCK_MARKET_PRICES):
+        if price.crop_name.lower() == payload.crop_name.lower() and price.market_name.lower() == payload.market_name.lower():
+            previous = price.wholesale_price_per_ton_naira
+            pct_change = 0.0 if previous == 0 else ((payload.wholesale_price_per_ton_naira - previous) / previous) * 100
+            updated = CropMarketPrice(
+                crop_name=price.crop_name,
+                market_name=price.market_name,
+                wholesale_price_per_ton_naira=payload.wholesale_price_per_ton_naira,
+                price_change_percentage=round(pct_change, 2),
+                last_updated_iso_utc=now_iso,
+                editor_note=payload.editor_note,
+            )
+            MOCK_MARKET_PRICES[idx] = updated
+            return updated
+
+    raise HTTPException(status_code=404, detail="Market/crop pair not found")
+
+
+@app.post("/api/v1/admin/suppliers", response_model=SupplierListing)
+def update_supplier_listing(
+    payload: UpdateSupplierPayload,
+    x_admin_token: str | None = Header(default=None),
+) -> SupplierListing:
+    _require_admin_token(x_admin_token)
+    now_iso = datetime.now(timezone.utc).isoformat()
+
+    for idx, supplier in enumerate(MOCK_SUPPLIER_LISTINGS):
+        if supplier.supplier_id == payload.supplier_id:
+            updated = SupplierListing(
+                supplier_id=supplier.supplier_id,
+                supplier_name=supplier.supplier_name,
+                location=supplier.location,
+                available_volume_tons=payload.available_volume_tons,
+                asking_price_per_ton_naira=supplier.asking_price_per_ton_naira,
+                contact_email=supplier.contact_email,
+                stock_status=payload.stock_status,
+                last_updated_iso_utc=now_iso,
+                editor_note=payload.editor_note,
+            )
+            MOCK_SUPPLIER_LISTINGS[idx] = updated
+            return updated
+
+    raise HTTPException(status_code=404, detail="Supplier not found")
 
 
 @app.get("/api/v1/dashboard", response_model=DashboardSnapshot)
