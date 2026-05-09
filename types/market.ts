@@ -12,8 +12,12 @@ export interface SupplierListing {
   location: string;
   commodity_type: 'Maize' | 'Soybeans';
   available_volume_tons: number;
-  stock_status: 'available' | 'depleted';
+  commodity_name: string;
+  market_reference: string;
   asking_price_per_ton_naira: number;
+  contact_phone_e164: string;
+  contact_whatsapp_e164: string;
+  contact_email?: string;
 }
 
 export interface DashboardSnapshot {

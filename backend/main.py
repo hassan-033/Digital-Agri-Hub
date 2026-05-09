@@ -3,7 +3,11 @@ from typing import List
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+
+SUPPORTED_COMMODITIES = {"Maize", "Soybeans"}
+SUPPORTED_MARKETS = {"Dawanau", "Soba"}
 
 
 class CropMarketPrice(BaseModel):
@@ -13,6 +17,22 @@ class CropMarketPrice(BaseModel):
     price_change_percentage: float
     last_updated_iso_utc: str
 
+    @field_validator("crop_name")
+    @classmethod
+    def validate_crop_name(cls, value: str) -> str:
+        normalized_value = value.strip()
+        if normalized_value not in SUPPORTED_COMMODITIES:
+            raise ValueError(f"Unsupported commodity: {normalized_value}")
+        return normalized_value
+
+    @field_validator("market_name")
+    @classmethod
+    def validate_market_name(cls, value: str) -> str:
+        normalized_value = value.strip()
+        if normalized_value not in SUPPORTED_MARKETS:
+            raise ValueError(f"Unsupported market: {normalized_value}")
+        return normalized_value
+
 
 class SupplierListing(BaseModel):
     supplier_id: str
@@ -20,8 +40,12 @@ class SupplierListing(BaseModel):
     location: str
     commodity_type: str
     available_volume_tons: int = Field(..., ge=0)
-    stock_status: str
+    commodity_name: str
+    market_reference: str
     asking_price_per_ton_naira: int = Field(..., ge=0)
+    contact_phone_e164: str
+    contact_whatsapp_e164: str
+    contact_email: str | None = None
 
 
 class DashboardSnapshot(BaseModel):
@@ -33,23 +57,30 @@ class DashboardSnapshot(BaseModel):
 MOCK_MARKET_PRICES: List[CropMarketPrice] = [
     CropMarketPrice(
         crop_name="Maize",
-        market_name="Kaduna",
+        market_name="Dawanau",
         wholesale_price_per_ton_naira=510000,
         price_change_percentage=2.3,
         last_updated_iso_utc="2026-02-27T09:30:00Z",
     ),
     CropMarketPrice(
+        crop_name="Maize",
+        market_name="Soba",
+        wholesale_price_per_ton_naira=498000,
+        price_change_percentage=1.1,
+        last_updated_iso_utc="2026-02-27T09:30:00Z",
+    ),
+    CropMarketPrice(
         crop_name="Soybeans",
-        market_name="Kano",
+        market_name="Dawanau",
         wholesale_price_per_ton_naira=695000,
         price_change_percentage=-1.2,
         last_updated_iso_utc="2026-02-27T09:30:00Z",
     ),
     CropMarketPrice(
-        crop_name="Cassava",
-        market_name="Lagos",
-        wholesale_price_per_ton_naira=420000,
-        price_change_percentage=0.8,
+        crop_name="Soybeans",
+        market_name="Soba",
+        wholesale_price_per_ton_naira=684000,
+        price_change_percentage=-0.6,
         last_updated_iso_utc="2026-02-27T09:30:00Z",
     ),
 ]
@@ -61,17 +92,36 @@ MOCK_SUPPLIER_LISTINGS: List[SupplierListing] = [
         location="Kaduna",
         commodity_type="Maize",
         available_volume_tons=240,
-        stock_status="available",
+        commodity_name="Maize",
+        market_reference="Kaduna central wholesale benchmark",
         asking_price_per_ton_naira=505000,
+        contact_phone_e164="+2348031110001",
+        contact_whatsapp_e164="+2348031110001",
+        contact_email="sales@greenfieldcommodities.ng",
     ),
     SupplierListing(
         supplier_id="SUP-002",
         supplier_name="Northern Grain Partners",
         location="Kano",
-        commodity_type="Soybeans",
-        available_volume_tons=0,
-        stock_status="depleted",
+        available_volume_tons=180,
+        commodity_name="Soybeans",
+        market_reference="Kano grain exchange benchmark",
         asking_price_per_ton_naira=688000,
+        contact_phone_e164="+2348031110002",
+        contact_whatsapp_e164="+2348031110002",
+        contact_email="trade@northerngrain.ng",
+    ),
+    SupplierListing(
+        supplier_id="SUP-003",
+        supplier_name="West Coast Agro Suppliers",
+        location="Lagos",
+        available_volume_tons=320,
+        commodity_name="Cassava",
+        market_reference="Lagos bulk produce benchmark",
+        asking_price_per_ton_naira=415000,
+        contact_phone_e164="+2348031110003",
+        contact_whatsapp_e164="+2348031110003",
+        contact_email="contact@westcoastagro.ng",
     ),
 ]
 
@@ -109,6 +159,17 @@ def get_supplier_listings() -> List[SupplierListing]:
         raise HTTPException(status_code=404, detail="Supplier listings are unavailable")
 
     return MOCK_SUPPLIER_LISTINGS
+
+
+@app.put("/api/v1/admin/market-prices", response_model=List[CropMarketPrice])
+def update_market_prices(market_prices: List[CropMarketPrice]) -> List[CropMarketPrice]:
+    global MOCK_MARKET_PRICES
+
+    if not market_prices:
+        raise HTTPException(status_code=400, detail="At least one market price record is required")
+
+    MOCK_MARKET_PRICES = market_prices
+    return MOCK_MARKET_PRICES
 
 
 @app.get("/api/v1/dashboard", response_model=DashboardSnapshot)
